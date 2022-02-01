@@ -1,0 +1,9 @@
+{
+    "NotebookApp": {
+        "ip": "0.0.0.0",
+        "port": 8888,
+        "allow_root": true,
+        "token": "355fed1e029d48066bf729d6ef4401a6070a189f2ef53a9a",
+        "open_browser": false
+    }
+}

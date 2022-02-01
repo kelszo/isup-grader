@@ -1,0 +1,110 @@
+\usepackage[style=numeric,
+    backend=biber,
+    sorting=none,
+    url=false,
+    isbn=false,
+    terseinits=true,
+    giveninits=true,
+    minnames=6,
+    maxnames=6]{biblatex}
+
+% Remove unwanted punctuations
+\renewcommand*{\revsdnamepunct}{}
+\renewcommand*{\finentrypunct}{}
+\renewcommand*{\bibpagespunct}{}
+
+% Dot instead av brackets in references
+\DeclareFieldFormat{labelnumberwidth}{\mkbibbold{#1\adddot}}
+
+% Lastname followed by initials format
+\DeclareNameAlias{sortname}{family-given}
+\DeclareNameAlias{default}{family-given}
+\renewcommand*{\revsdnamepunct}{}
+
+\DeclareSourcemap{%
+    \maps[datatype=bibtex]{
+        % Journal abbreviations
+        \map[overwrite]{
+            \step[fieldsource=shortjournal]
+            \step[fieldset=journaltitle,origfieldval]
+        }
+    }
+}
+
+% remove in
+\renewbibmacro{in:}{}
+% remove pp
+\DeclareFieldFormat*{pages}{#1}
+% reformat doi
+\DeclareFieldFormat*{doi}{\url{https://doi.org/#1}}
+%remove quotation marks around title
+\DeclareFieldFormat*{title}{#1}
+
+
+\DeclareFieldFormat{journaltitle}{\mkbibemph{#1}\isdot}
+
+% Provide three letter month names
+\newcommand*{\shortmonth}[1]{
+    \ifthenelse{\NOT\equal{#1}{}}{
+        \ifcase#1\relax
+        \or Jan
+        \or Feb
+        \or Mar
+        \or Apr
+        \or May
+        \or Jun
+        \or Jul
+        \or Aug
+        \or Sep
+        \or Oct
+        \or Nov
+        \or Dec
+        \fi
+    }
+}
+
+\DeclareFieldFormat*{number}{\mkbibparens{#1}}
+
+\DeclareFieldFormat*{date}{\thefield{year}}
+
+% Code adapted from biblatex-nejm package
+
+\renewbibmacro*{volume+number+eid}{
+    \printfield{volume}%
+    \setunit{}%
+    \printfield{number}%
+    \addcolon%
+    \printfield{eid}%
+}
+
+\renewbibmacro*{issue+date}{
+    \usebibmacro{date}
+}
+
+\renewbibmacro*{journal+issuetitle}{
+    \usebibmacro{journal}%
+    \iffieldundef{series}%
+    \adddot%
+    {}
+    {\newunit%
+        \printfield{series}}%
+    \setunit{\addspace}%
+    \usebibmacro{issue+date}%
+    \setunit{\addsemicolon}%
+    \usebibmacro{volume+number+eid}%
+    \usebibmacro{issue}%
+    \newunit}
+
+% compress page numbers. E.g. XYZ-XAB -> XYZ-AB
+\DeclareFieldFormat{postnote}{\mkcomprange[{\mkpageprefix[pagination]}]{#1}}
+\DeclareFieldFormat{pages}{\mkcomprange{#1}}
+
+% Compress ranges where lower limit > 100
+\setcounter{mincomprange}{100}
+
+% Don't compress beyond the fourth digit
+\setcounter{maxcomprange}{1000}
+
+% Display compressed upper limit with at least two digits,
+% unless leading digit is zero
+\setcounter{mincompwidth}{10}

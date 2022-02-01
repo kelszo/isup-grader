@@ -1,0 +1,31 @@
+name: isupgrader
+prefix: ./env
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - albumentations
+  - efficientnet-pytorch
+  - humanize
+  - imagecodecs
+  - imagehash
+  - keras
+  - matplotlib
+  - numpy
+  - opencv
+  - openslide
+  - pandas
+  - python=3.6
+  - pytorch
+  - pytorch-lightning
+  - scikit-image
+  - scikit-learn
+  - scikit-plot
+  - seaborn
+  - tensorflow
+  - tifffile
+  - watermark
+  - pip
+  - pip:
+     - openphi

@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  cpu_notebook:
+    container_name: cpu_notebook
+    restart: "no"
+    volumes:
+      - ./notebooks:/app/notebooks:ro
+      - ./isupgrader/executors:/app/executors:ro
+      - ./local/out:/app/out
+
+      - ./isupgrader:/lib/python3/isupgrader:ro
+
+      - type: bind
+        source: ./data
+        target: /data
+
+    network_mode: host
+    shm_size: '8gb'
+    build: 
+      context: .
+      dockerfile: cpu.notebook.Dockerfile
+
+  code_server:
+    image: lscr.io/linuxserver/code-server
+    container_name: code_server
+    restart: "no"
+    environment:
+      - PUID=72847
+      - PGID=72847
+      - TZ=Europe/Stockholm
+    ports:
+      - "9080:8443"
+    volumes:
+      - ./:/home/coder/code/isup-grader
+    command: code-server --auth none
+
+  gpu_notebook:
+    container_name: gpu_notebook
+    restart: "no"
+    volumes:
+      - ./notebooks:/app/notebooks:ro
+      - ./isupgrader/executors:/app/executors:ro
+      - ./local/out:/app/out
+
+      - ./isupgrader:/lib/python3/isupgrader:ro
+
+      - type: bind
+        source: /mnt/mebprostateai/wsi/PANDA
+        target: /data/raw/panda
+        read_only: true
+      - type: bind
+        source: /datassd/kelszo/data/processed/panda
+        target: /data/processed/panda
+      - type: bind
+        source: /datassd/kelszo/data/interim/panda
+        target: /data/interim/panda
+      - type: bind
+        source: /datassd/kelszo/data/raw/panda_external_ks
+        target: /data/raw/panda_external_ks
+        read_only: true
+
+    network_mode: host
+    shm_size: '64gb'
+    build: 
+      context: .
+      dockerfile: gpu.notebook.Dockerfile
+    runtime: nvidia

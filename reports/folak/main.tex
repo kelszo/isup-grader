@@ -1,0 +1,194 @@
+\documentclass{mod-comjnl}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{csquotes}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{siunitx}
+\usepackage[gen]{eurosym}
+\usepackage[acronym]{glossaries}
+\usepackage{blindtext}
+\usepackage{booktabs}
+\usepackage{pgf}
+\usepackage[tableposition=top,font=small]{caption}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{stfloats}
+\usepackage[top=2cm, left=1.65cm, right=1.65cm, bottom=0.75cm]{geometry}
+\usepackage[flushmargin]{footmisc}
+\usepackage{xcolor}
+
+
+\hypersetup{hidelinks}
+
+\makeatletter
+\setlength{\@fptop}{0pt}
+\makeatother
+
+%% These two lines are needed to get the correct paper size
+%% in TeX Live 2016
+\let\pdfpageheight\paperheight
+\let\pdfpagewidth\paperwidth
+
+\glsdisablehyper
+
+\newacronym{he}{H\&E}{hematoxylin and eosin}
+\newacronym{wsi}{WSI}{whole slide imaging}
+\newacronym{cnn}{CNN}{convolutional neural network}
+\newacronym{qwk}{QWK}{quadratic weighted Cohen’s kappa}
+\newacronym{pca}{PCa}{prostate cancer}
+\newacronym{panda}{PANDA}{Prostate cANcer graDe Assessment}
+\newacronym{isup}{ISUP}{International Society of Urological Pathology}
+
+
+\sisetup{
+  group-four-digits = true,
+  group-separator = {,}
+}
+
+% custom vancouver styling
+\input{vancouver.tex}
+
+\addbibresource{main.bib}
+ 
+\begin{document}
+
+\title[Efficient CNN Training for ISUP Classification of Prostate Biopsies]{Efficient Convolutional Neural Network Training for ISUP Classification of Prostate Biopsies}
+\author{Kelvin Szolnoky}
+\shortauthors{K. Szolnoky}
+\affiliation{Department of Medical Epidemiology and Biostatistics,\\ Karolinska Institutet,\\ Stockholm, Sweden}
+\email{kelvin.szolnoky@ki.se}
+\supervisor{Martin Eklund}
+
+\begin{abstract}
+  \Acrfull{pca} is one of the most frequently occurring cancers in the world and in combination with it being a rather expensive cancer to diagnose and treat,  \acrshort{pca} becomes an extensive economic burden on society. This burden may be lifted by introducing automation systems where possible as a diagnostic tool. This can be done by scanning in the biopsies using \acrlong{wsi} and using a hot topic in science, machine learning. In this article, we show that classifying, and thus diagnosing, prostate biopsies is possible with a simple model. The model achieves a state-of-the-art like performance with a \acrfull{qwk} of 0.909 on an internal test set. The result is validated on an external test set and scoring a \acrshort{qwk} of 0.882. Our results show that it is possible to create high performing ISUP grader with a simple model and thus minimising the resources required for training and inference.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+In men, \acrfull{pca} is, compared to other types of cancers, the most frequently diagnosed in 112 countries and the leading cause of death in 48 countries \cite{sung_global_2021}. In a 2020 article by Shuang Hao et. al., the estimated economic burden of \acrshort{pca} for Sweden was estimated to be \SI{280781820}[\euro]{} \cite{hao_economic_2020}. This sum includes everything from direct healthcare costs to estimated cost due to productivity loss. Thus, all advancements and improvements within diagnostics and treatment have a large opportunity to reduce the societal burden.
+
+Two areas that have a large development potential are diagnostics and prognostics. A pathologist's assessment through a microscope on \acrfull{he} stained biopsy is currently the most important marker for both \acrshort{pca} diagnostics and prognostics \cite{epstein_update_2010}. However, this assessment process has remained rather unchanged for the past century \cite{boyce_update_2017}. Since the approval of \acrfull{wsi} by the Food and Drug Administration (FDA) \cite{boyce_update_2017} has the typical prostate viewing by microscope been switched out for the digital \acrshort{wsi}. It is safe to say that the digitalisation of pathology has been slow when comparing to medical disciplines such as radiology \cite{zippel_rise_2021}.
+
+However, the standardised approach of pathologists grading prostate biopsies has several flaws. Firstly, it is very costly as the average cost of a pathologist's assessment on a prostate biopsy is \SI{516}[\euro]{} \cite{hao_economic_2020}, making it one of the more expensive procedures in the treatment pathway. Secondly, it suffers from signiﬁcant inter- and intraobserver variability \cite{egevad_standardization_2013, allsbrook_interobserver_general_2001}, however, specialized uropathologists show higher concordance rates \cite{allsbrook_interobserver_uro_2001}.
+
+The ISUP grading was introduced in 2016 to combat the rater variability \cite{egevad_international_2016}. It is done by grouping Gleason scores into five groups, ISUP grades 1-5. 
+
+In later years, a hot topic within several fields of science, including medicine, is the application of machine learning. Machine learning within medicine has shown a lot of promise, especially \acrfullpl{cnn} within the field of image analysis. An article within the field of dermatology has demonstrated that a \acrshort{cnn} achieves higher performance compared to the majority of dermatologists tested \cite{haenssle_man_2018}. Furthermore, results show that not only can \acrshortpl{cnn} perform better than pathologists grading prostate biopsies, they also show that in symbiosis pathologists and \acrshortpl{cnn} systems achieve higher performance than solitarily \cite{bulten_artificial_2021}.
+
+Despite the performance of these systems, their application into clinical practice has been slow and remains a question. This is due to the fact that the small datasets trained and validated on miss wide variance of clinical samples \cite{campanella_clinical-grade_2019}. Another issue with \acrshortpl{cnn} is the sheer amount of resources required to train them. The computer chip shortage has made it harder to access the resources needed to train and use \acrshortpl{cnn}. Lightweight models that require less resources for training and inference but still achieve cutting edge results are needed to continue the development and application of \acrshortpl{cnn}. The \textit{EfficientNet} family are a great example of this, for their time they were 8x smaller and 6x faster than the best existing \acrshortpl{cnn} and yet today they are one of the top-performing networks on ImageNet.
+
+In 2020, an online challenge (\acrfull{panda} Challenge\footnote{\url{https://www.kaggle.com/c/prostate-cancer-grade-assessment/overview}}) to create models that classify \acrshort{pca} in biopsies was hosted by a joint collaboration of Radboud University Medical Center and Karolinska Institute. With roughly 11 000 \acrshortpl{wsi}, this made the \acrshort{panda} challenge and its dataset the largest publicly available \acrshort{wsi} collection.
+
+The aim of the study was to train a \textit{simple} but yet state-of-the-art \acrshort{isup} grading model on an open dataset of prostate biopsies (the \acrshort{panda} dataset) while using as little resources as possible. Furthermore, we validate these results across both an internal and external dataset.
+
+\section{Materials and Methods}
+All code used in this study is publicly available online at \url{https://github.com/kelszo/isup-grader} under the \textit{GNU Affero General Public License v3.0}.
+
+\subsection{Dataset}
+The training dataset was retrieved from the \acrfull{panda} Challenge hosted on Kaggle\footnote{\url{https://www.kaggle.com/c/prostate-cancer-grade-assessment}} under the \textit{Attribution-NonCommercial-ShareAlike 4.0 International} license. The study's data was approved by the institutional review board of Radboud University Medical Center (IRB \textit{2016–2275}), Stockholm regional ethics committee (permits \textit{2012/572-31/1}, \textit{2012/438-31/3}, and \textit{2018/845-32}). Informed consent was waived due to the usage of de-identified prostate specimens in a retrospective setting.
+
+The dataset consisted of 10 616 \acrshort{wsi} images in tiff format used for training and an additional 938 slides used for testing. The training dataset was split into five folds for cross-validation. The testing dataset was used as an internal validation set.
+
+330 WSI of prostate biopsies consisting of both benign and cancerous tissue of varying ISUP grades was fetched from \textit{Karolinska University Hospital} to use as an external validation set.
+
+\subsection{Data pre-processing}
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=0.4\textwidth]{figures/tiling.png}
+  \caption{The process from WSI to input image for the network. Starts with finding the axis for the biopsy and then optimally extracting non-overlapping patches to include as much data as possible from the biopsy with a minimal amount of background data in each patch. Finishes with glueing together 36 randomly selected patches into a 1:1 resolution image.}
+  \label{fig:tiling}
+\end{figure}
+
+The pre-processing done on the \acrshortpl{wsi} was to split each image up into smaller sub-images (patches) to remove white space and reduce the total resolution of each input image. This was done by using an optimised algorithm finding the axis of each biopsy and then extracting as many non-overlapping patches as possible from the biopsy as seen in figure \ref{fig:tiling}. Each patch was extracted at level 1 (downsampling of 4) with a resolution of 256x256.
+
+To exclude noisy labels, an open pre-made dataset that already eliminated noisy labels was used\footnote{\url{https://github.com/kentaroy47/Kaggle-PANDA-1st-place-solution}}.
+
+\subsection{Model}
+The model consisted of a single EfficientNetB0 model \cite{tan_efficientnet_2020} pre-trained on ImageNet. All parameters remained tunable for a total of 5.3 million tunable parameters. The model's input was a 1536x1536 resolution image with 3 channels; the image was composed of 36 random patches selected from the pre-processing step, if the biopsy comprised of less than 36 patches white patches were appended to reach 36 patches. The patches were glued together in random order. Each time a biopsy was fetched, a new 36 random patches were selected and glued together to form a stitched image.
+
+Different types of augmentations were made on both a patch and stitched image level. On patch level, flipping in both horisontal and vertical axis, blurring, jittering the colours, and cutout were done. On the stitched image level, flipping in both horisontal and vertical axis and normalising the image by the ImageNet values. These augmentations were done to decrease the possibility of overfitting. Additionally, AdamW was chosen as the optimizer to help combat overfitting. Larger batch sizes of 8 were selected to utilise the complete effect of batch normalization in the network.
+
+Several additional methods were used to increase training speed. Most notable include cyclic learning rate scheduler \cite{smith_cyclical_2017} and mixed-precision training \cite{micikevicius_mixed_2018}. Mixed-precision training was also used to reduce the required amount of resources needed. Worth noting is that ensembling was not done to speed up training and inference time.
+
+Test time augmentations were done to try to mimic the effects of ensembles during testing without needing to train complete ensembles. It was also done to include more patches in testing, due to the nature of the tiling algorithm it can select more than 36 patches. Thus to include all these tiles in the final prediction, predictions were made several times with different tiles and augmentations and the final prediction was chosen through majority voting.
+
+\subsection{Statistical Analysis}
+The model's ISUP-grading performance will be assessed using the \acrfull{qwk} and accuracy. \acrshort{qwk} is a metric that measures the agreement between two raters (inter and intra) of categorical items. If the two series are at a random agreement the \acrshort{qwk} will be 0, on the other hand, if the two series are in complete agreement the \acrshort{qwk} is 1. \acrshort{qwk} can also be less than 0 if the two series are at less agreement than expected by pure randomness. Accuracy is simply the percentage of outcomes that the network predicts the same as ground truth.
+
+Choice of treatment is often based on grouped ISUP grades; the groups being: benign, ISUP 1, ISUP 2-3, and ISUP4-5. The performance will thus also be graded in how well it performs (both \acrshort{qwk} and accuracy) on these grouped ISUP grades.
+
+\section{Results}
+\begin{figure*}[t]
+  \hspace{-2cm}
+  \centering
+  \begin{subfigure}[b]{.5\linewidth}
+    \centering
+    \begin{subfigure}[b]{.5\linewidth}
+      \centering
+      \resizebox{1.5\textwidth}{!}{\input{figures/internal_grading_heatmap.pgf}}
+    \end{subfigure}%
+    \begin{subfigure}[b]{.5\linewidth}
+      \centering
+      \resizebox{1.5\textwidth}{!}{\input{figures/internal_grading_heatmap_percentage.pgf}}
+    \end{subfigure}%
+    \caption{}
+  \end{subfigure}%
+  \begin{subfigure}[b]{.5\linewidth}
+    \centering
+    \begin{subfigure}[b]{.5\linewidth}
+      \centering
+      \resizebox{1.5\textwidth}{!}{\input{figures/external_grading_heatmap.pgf}}
+    \end{subfigure}%
+    \begin{subfigure}[b]{.5\linewidth}
+      \centering
+      \resizebox{1.5\textwidth}{!}{\input{figures/external_grading_heatmap_percentage.pgf}}
+    \end{subfigure}%
+    \caption{}
+  \end{subfigure}%
+  \caption{Confusion matrices for ISUP grading on (a) the internal test set and (b) the external test set. The matrix on the left of each set shows the total amount of predictions per ground truth grade. The matrix on the right of each set displays the percentage predicted grades per ground truth grade.}
+  \label{fig:heatmaps}
+\end{figure*}
+
+\begin{table*}[b]
+  \centering
+  \caption{The \acrshort{qwk} and accuracy results for both the internal and external dataset. The star (*) indicates grouping of ISUP grades such as: benign, ISUP 1, ISUP 2-3, and ISUP 4-5.}
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    \textbf{Test set} & \textbf{QWK} & \textbf{QWK*} & \textbf{Accuracy} & \textbf{Accuracy*} \\ \midrule
+    Internal          & 0.909        & 0.914         & 73.7\%            & 82.3\%             \\
+    External          & 0.882        & 0.875         & 70.3\%            & 79.3\%             \\ \bottomrule
+  \end{tabular}
+  \label{table:results}
+\end{table*}
+
+To train the model on the complete \acrshort{panda} dataset took a total of 2 hours and 18 minutes. Inference took roughly 30 minutes (on one GPU) for both the internal and external sets.
+
+The \acrlong{qwk} achieved by the network on the internal set was 0.909 and the accuracy reached 73.7\%. Grouping the ISUP grades, the network performed a little better and achieved a \acrshort{qwk} of 0.914 and accuracy of 82.3\%.
+
+The external dataset performed with a \acrshort{qwk} of 0.882 and accuracy of 70.3\%. Grouping the ISUP grades showed different results compared to the internal dataset, a slightly worse performance with a \acrshort{qwk} of 0.875 and improved accuracy of 79.3\%.
+
+A summary of these results, for both the internal and external test sets are seen in table \ref{table:results}.
+
+
+\section{Discussion}
+The \textit{simple} model created displayed high performant results on both the internal and external validation sets. As expected, there is a drop in performance between the internal and external sets. This drop was not as large as expected and can be due to several reasons. One theory proposed is that several augmentations done (such as blurring, hue, and saturation) that do not effect the internal test set performance helps the model to regularize to other test sets. This is due to the nature of microscopes, having different colour profiles, and focusing capapilities. Also normalising the images to ImageNet values most likely helped to keep this standard. Though, more research is needed to support this hypothesis.
+
+The model seems to have minor trouble with some outliers (e.g. distinguishing between ISUP 5 and benign tissue), this is most likely due to not enough training data. Ensembling the model across all 5 folds would most likely eliminate this problem.
+
+Interesting to note is that already after 25 minutes of training the model achieved a \acrshort{qwk} of 0.935 on the holdout fold, increasing to 0.953 after an additional two hours. This displays how fast the network is actually learning, mainly due to super-converging with the cyclical learning rate.
+
+\section{Conclusion}
+In this paper, we have displayed that training a state-of-the-art pathologist-level model for grading prostate biopsies on the ISUP scale does not require a tremendous amount of resources; it can be done in roughly two hours on two consumer-grade graphics cards. We believe that this facilitates the application of support grading systems in regions where neither expert level pathology resources or computational resources are sufficient. 
+
+Though, this is study used quite a strict definition of insufficient resources. Corners were cut to keep this definition, e.g. no ensembling was made to drastically reduce training and inference time. Such strict definition may prove premature, and simply ensembling all folds may be a worthwhile compromise to make in comparison to the performance increase.
+
+\begin{ack}
+I would like to thank my supervisor \textbf{Martin Eklund} for letting me take on this project and welcoming me into the group. I would also like to thank \textbf{Kimmo Kartasalo} and \textbf{Nita Mulliqi} for the immense support and openness to discuss ideas.
+\end{ack}
+
+\printbibliography
+
+\end{document}
